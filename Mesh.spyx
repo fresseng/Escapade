@@ -1,0 +1,152 @@
+###############################################################################
+#   ESCAPADE
+# Ergonomic Solver using Cellular Automata for PArtial Differential Equation
+#       Copyright (C) 2009 Nicolas Fressengeas <nicolas@fressengeas.net>
+#       Copyright (C) 2009 Hubert Frauensohn <hubert.frauensohn@univ-metz.fr>
+#  Distributed under the terms of the GNU General Public License (GPL),
+#  version 2 or any later version.  The full text of the GPL is available at:
+#                  http://www.gnu.org/licenses/
+###############################################################################
+
+# This file implements the Mesh class
+# The mesh is basically a tensor of integer of arbitrary order
+# Each integer specifies the number of the equation to be solved on that point
+# Its method "patterns" uses a Pattern class object to produce an array/table/matrix of the same dimensions containing integers, each of which referring to a possibly different update rule.
+#
+#
+# This class can probably be coded in spyx file because everything is numeric
+#
+#
+# Author : Nicolas Fressengeas
+#
+#
+#from numpy import *
+#The above cannont be done
+#It implies conflicts in the global namespace
+#See for instance the keyword "var" (important, isn't it ?)
+import numpy
+import vecteurs
+
+
+class Mesh(): 
+	#It does not inherit. 
+	#It will have a ndarry object for the initial mesh
+	#And another for the pattern mesh
+# The constructor builds a matrix dor the object mesh out of the list argument
+	def __init__(self,l):
+		if (l.dtype!=int):
+			print("For the sake of speed : dtype type must be int")
+#			#Integers only are allowed for performance issues
+#			Commented out : it is not so easy to construct an integer array		
+		self.mesh=l
+		self.shape=l.shape
+		if l.min()<0:
+			print("All array elements should be positive integers")			
+
+
+	def __repr__(self):
+		return (self.mesh).__repr__()
+	# The printer prints the mesh object
+	
+	# __getitem__ mimmicks the getitem from ndarray
+	# but returns -1 if oustside the mesh
+	def __getitem__(self,pos):
+		if len(pos)>len(self.shape):
+			print("dimension of argument ("+str(len(pos))+") must be less or equal to dimension of mesh ("+str(len(self.shape))+")")
+		n=len(self.shape)
+		j=0
+		for i in pos:
+			if (i>=self.shape[j] or i<0):
+				return (-1)
+			j=j+1
+		return (self.mesh[pos])
+
+	
+	def __setitem__(self,pos,x):
+		self.mesh[pos]=x
+
+
+	# The method local_pattern takes as arguments:
+	# 		a Pattern
+	#		a position in the mesh as a vector
+	# 	and returns
+	#		a list containing the elements of mesh referenced by the patter (-1 if outside the mesh)
+	def local_pattern(self,pattern, pos):
+		v=Pattern([])
+			
+		for i in pattern:
+			v.append(self[vecteurs.sumv(i,pos)])
+		return (v)
+
+	 
+	# The method field takes a pattern as argument
+	# and returns
+	# - an array of integers of the same dimension as mesh.
+	#	each integer stands for one possibly different update rule in the cellular network
+	# - a list of points, each of which corresponds to one different integer
+	#	this list will be used to actually compute the update rules
+	def field(self,pattern):
+		# Let's start with an empty pattern list
+		patt_list=[]
+		# And an empty point list
+		point_list=[]
+		# The return array will have the same dimensions as self
+		pattnum_array=numpy.zeros(self.shape,dtype=int)
+		# Happily, numpy provides an N dimensionnal iterator even if N is unknown
+		# It yields the coordinates i and the value val (only i here is used)
+		for (i,val) in numpy.ndenumerate(self.mesh):
+			# the the Pattern pattern is mapped onto the mesh on point i
+			# it yields a given local pattern
+			loc_patt=self.local_pattern(pattern,i)
+			# if it is not in the list, then add it
+			# and add the point to the point list
+			if patt_list.count(loc_patt)==0:
+				patt_list.append(loc_patt)
+				point_list.append(i)
+			# give the local point its position number in the list
+			pattnum_array[i]=patt_list.index(loc_patt)
+		# The return by value of the big array pattnum_array is not a good idea
+		# I do not know how to do better in python
+		# C could handle it
+		return([point_list,pattnum_array])
+		
+	
+	
+	
+	
+	def is_in(self,point):
+		"""This method returns True if point is within self.
+		"""
+		
+		n=len(self.shape)
+		j=0
+				
+		for i in point:
+			if (i>=self.shape[j] or i<0):
+				return (False)
+			j=j+1
+		return (True)
+	
+	
+	
+	
+	
+	######### BEWARE : INIT USELESS ###########
+	# The method init is useless
+	# It is kept for compatibility puproposes with test files
+	# Its use should be replaced by numpy indexation method
+	# which are much more flxible
+	#
+	# The method init provides an easy way to design the mesh
+	# It takes as arguments a list of N lists of n slice objects
+	# A slice object can be constructed with slice()
+	# n should be equal to the dimension of the array
+	# The slide objects refer to an area of the mesh to which the intger position in the list will be affected
+	def init(self,tranchelist,valuelist):
+		if len(tranchelist)!=len(valuelist):
+			print("Both argument length should be equal")
+		i=0;
+		for tranche in tranchelist:
+			self.mesh[tranche]=valuelist[i]
+			i+=1
+	
