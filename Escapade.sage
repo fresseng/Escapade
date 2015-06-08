@@ -343,16 +343,18 @@ class Escapade():
 			#Pickle and compress the rule before listing for memory saving
 			rule=zlib.compress(dumps(rule))
 			#Skip, or NOT, the lengthy test to limit the number of rules
-			inlist=False
-			for i in range(self.rulenumber):
-				if rule==self.rulelist[i]:
-					inlist=True
-					self.ruledict[self.field[tuple(point)]]=i
-					break;
-			if not inlist:
-				self.rulelist.append(rule)
-				self.ruledict[self.field[tuple(point)]]=self.rulenumber
-				self.rulenumber+=1
+			#BUG : only one point is set to the new rule, leaving rule numbers in field which do not mean anything
+			#First work around : do not limit the number of rules
+			#inlist=False
+			#for i in range(self.rulenumber):
+			#	if rule==self.rulelist[i]:
+			#		inlist=True
+			#		self.ruledict[self.field[tuple(point)]]=i #<---BUG
+			#		break;
+			#if not inlist:
+			self.rulelist.append(rule)
+			self.ruledict[self.field[tuple(point)]]=self.rulenumber
+			self.rulenumber+=1
 			#end of list adding
 			self.points_computed_so_far+=1
 			f=open("rulelist.escapade.dump","w")
