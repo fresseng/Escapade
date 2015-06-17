@@ -30,10 +30,13 @@ import vecteurs
 
 class Mesh(): 
 	#It does not inherit. 
-	#It will have a ndarry object for the initial mesh
+
+	#It will have a ndarray object for the initial mesh
 	#And another for the pattern mesh
 # The constructor builds a matrix dor the object mesh out of the list argument
 	def __init__(self,l):
+		""" c'est une fonction qui initialise le maillage à "l" (ayant la même forme et ne contenant que des entiers positifs).
+		"""
 		if (l.dtype!=int):
 			print("For the sake of speed : dtype type must be int")
 #			#Integers only are allowed for performance issues
@@ -41,16 +44,25 @@ class Mesh():
 		self.mesh=l
 		self.shape=l.shape
 		if l.min()<0:
-			print("All array elements should be positive integers")			
+			print("All array elements should be positive integers")	
+	
 
 
 	def __repr__(self):
+		""" Ceci donne la représentation du maillage
+		"""
 		return (self.mesh).__repr__()
-	# The printer prints the mesh object
+	#The printer prints the mesh object 
+	
 	
 	# __getitem__ mimmicks the getitem from ndarray
 	# but returns -1 if oustside the mesh
 	def __getitem__(self,pos):
+		""" x.__getitem__(y) <==> x[y] si y appartient au maillage
+							     <==> -1   sinon
+		    len() retourne la dimension de l'objet
+		    "pos" est la position à laquelle on veut regarder la valeur de la grandeur physique étudiée (y selon précédemment)
+		"""
 		if len(pos)>len(self.shape):
 			print("dimension of argument ("+str(len(pos))+") must be less or equal to dimension of mesh ("+str(len(self.shape))+")")
 		n=len(self.shape)
@@ -64,6 +76,12 @@ class Mesh():
 	
 	def __setitem__(self,pos,x):
 		self.mesh[pos]=x
+	""" assigner à la position "pos" de la grille la valeur "x"
+	    x correspond au numéro de l'équation à résoudre en ce point de la grille
+	"""
+
+
+
 
 
 	# The method local_pattern takes as arguments:
@@ -71,9 +89,14 @@ class Mesh():
 	#		a position in the mesh as a vector
 	# 	and returns
 	#		a list containing the elements of mesh referenced by the patter (-1 if outside the mesh)
+
 	def local_pattern(self,pattern, pos):
+
+	""" Cette méthode prend en arguments un pattern (un modèle), et une position dans la grille (un vecteur) et retourne une matrice de mêmes 		dimensions (de classe Pattern) contenant des entiers dont chacun correspond à la valeur contenue dans la maille.
+	--> C'est une sorte de translation du pattern ou une "extraction" du voisinage du point qui nous intéresse (pos).
+	la méthode prédéfinie "append" et utilisée dans cette fonction permet de rajouter un élèment à la fin d'une liste (list.append(x))
+	"""
 		v=Pattern([])
-			
 		for i in pattern:
 			v.append(self[vecteurs.sumv(i,pos)])
 		return (v)
@@ -85,29 +108,47 @@ class Mesh():
 	#	each integer stands for one possibly different update rule in the cellular network
 	# - a list of points, each of which corresponds to one different integer
 	#	this list will be used to actually compute the update rules
+
+
 	def field(self,pattern):
+
+		""" Cette méthode prend un pattern en argument et renvoie 
+		- Un tableau d'entiers ayant la même dimension que la grille dont chaque case contient le numéro de la règle de mise à jour
+correspondante à cette position là dans le réseau cellulaire.
+		- Une liste de points dont chacun correspond à un entier différent. Cette liste sera utilisée pour calculer les règles de mise à jour.
+		"""
+
 		# Let's start with an empty pattern list
+		# Commençons par une liste de pattern vide
 		patt_list=[]
+		# Et une liste de points vide
 		# And an empty point list
 		point_list=[]
 		# The return array will have the same dimensions as self
+		# Le tableau à renvoyer doit avoir les mêmes dimensions que la grille et ne contiendra que des entiers
 		pattnum_array=numpy.zeros(self.shape,dtype=int)
-		# Happily, numpy provides an N dimensionnal iterator even if N is unknown
+		# Happily, numpy provides an N dimensional iterator even if N is unknown
 		# It yields the coordinates i and the value val (only i here is used)
+		# numpy possède un itérateur d'index multidimensionnel "numpy.ndenumerate"
+		# Il rend un itérateur rapportant les paires de cordonnées d'un tableau et des valeurs
 		for (i,val) in numpy.ndenumerate(self.mesh):
-			# the the Pattern pattern is mapped onto the mesh on point i
+			# the Pattern pattern is mapped onto the mesh on point i
+			# le pattern est reporté sur la grille et centré au point i.
 			# it yields a given local pattern
+			# il rapporte un pattern local donné
 			loc_patt=self.local_pattern(pattern,i)
 			# if it is not in the list, then add it
 			# and add the point to the point list
-			if patt_list.count(loc_patt)==0:
+			try:			
+				pattnum_array[i]=patt_list.index(loc_patt)
+			except ValueError:
+				pattnum_array[i]=len(patt_list)
 				patt_list.append(loc_patt)
 				point_list.append(i)
+				
+				
 			# give the local point its position number in the list
-			pattnum_array[i]=patt_list.index(loc_patt)
-		# The return by value of the big array pattnum_array is not a good idea
-		# I do not know how to do better in python
-		# C could handle it
+			
 		return([point_list,pattnum_array])
 		
 	
@@ -115,7 +156,12 @@ class Mesh():
 	
 	
 	def is_in(self,point):
-		"""This method returns True if point is within self.
+
+
+		""" Cette méthode prend pour argument "point" de l'univers et vérifier s'il appartient à notre grille !
+		Ainsi, "point" est une liste de même dimension que "la dimension de la grille", c'est à dire si notre grille est en 3D "point" sera 			une liste de 3 points.	
+		La méthode renvoie True si "point" appartient à la grille, sinon elle renvoie False.
+		Elle utilise la méthode prédéfinie "shape" qui renvoie les dimensions de la grille.
 		"""
 		
 		n=len(self.shape)

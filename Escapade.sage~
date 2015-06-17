@@ -33,6 +33,16 @@ load(os.path.join(os.path.expanduser(EscapadeInstallDir),'dd.sage'))
 
 # La classe principale
 class Escapade():
+<<<<<<< HEAD
+	def __init__(self,system,mesh,unknowns,constants=[],observers=[],dirichlet=[]):
+		"""The constructor constructs the three members : system, unknowns and mesh.
+		The three arguments are respectively a list of equations, a list of functions (the unknowns) and the mesh, of the Mesh class"
+		It also sets to 0 the state variables that indicate if the computations have been done and the fils written.
+		The constants argument states which variables are supposed to be known.
+		The observers are a list of expressions of the variables and constants which will computed at each automaton step, allowing one to "observe" a given value which is not directly computed
+		dirichlet is a list of lists, each of one corresponds to an equation in the system (first arg). This list contains those of the variables which are assumed to be known on that given system (in other words, those variables for which you give a Dirichlet condition)
+		
+=======
 	def __init__(self,system,mesh,unknowns,constants=[],observers=[],dirichlet=[],method=method):
 		"""
 Le constructeur du fichier ESCAPADE 
@@ -47,6 +57,7 @@ Le constructeur du fichier ESCAPADE
 qui permet « d'observer » une valeur qui n'est pas directement calculée.
 	- « dirichlet » : une liste de listes, chacune correspondant à une équation du système. La liste contient les variables connus sur ce
 système donné (des variables qui ont des conditions de Dirichlet)
+>>>>>>> 9312177e1dd2a431f1c86f39a24281fb95f2cffb
 		"""
 		self.systemlist=FiniteDifferenceSystemList(system)
 		self.unknowns=unknowns
@@ -82,7 +93,11 @@ système donné (des variables qui ont des conditions de Dirichlet)
 		# 0 : the false time method
 		# 1 : the Newton method
 		# ...
+<<<<<<< HEAD
+		self.method=1
+=======
 		self.method=method=4
+>>>>>>> 9312177e1dd2a431f1c86f39a24281fb95f2cffb
 		#Now the value of state variables
 		self.patterns_done=0
 		self.field_done=0
@@ -91,6 +106,11 @@ système donné (des variables qui ont des conditions de Dirichlet)
 		self.zerovector=vector(self.local_args)
 		#The differentiation vector
 		self.diff_vector=vector(apply(f,self.local_args) for f in unknowns)
+<<<<<<< HEAD
+		#Choice of the method to compute the rules
+		self.rulechoice=1
+=======
+>>>>>>> 9312177e1dd2a431f1c86f39a24281fb95f2cffb
 		#The number of pattern points computed so far : usefull to recover from a maxima crash
 		self.points_computed_so_far=-1
 		#Time step used in the false time method
@@ -122,7 +142,64 @@ système donné (des variables qui ont des conditions de Dirichlet)
 		return("The systems that are to be solved (==0 are implicit):\n"+self.systemlist.__repr__()+"\nThe sought functions:\n"+self.unknowns.__repr__()+cs+os+"\nThe mesh :\n"+self.mesh.__repr__())
 
 	
+<<<<<<< HEAD
+	def rules(self,pos):
+		"""Computes the update rules at a given point : it is a list of rules.
+		Constants and observers are not included in it. They are added later.
+		Should be computed by summing the squared error on all the points pointed by dependency.
+		"""
+		# The system on the particular point we are on
+		localsystem=(self.systemlist[self.mesh[tuple(pos)]])
+		# Whatever the method, if the localsystem is null, return the no move rule
+		if localsystem==[0]:
+			return list(self.diff_vector)
+#		if localsystem.squared_norm()==0:
+#			print("squarednorm simplification")
+#			return list(self.diff_vector)
+		# For the False Time method, it is really easy, with a tricky part if the null system has only one component
+		if self.method==0:
+			rule=[]
+			i=0
+			for equation in localsystem:
+				rule.append(self.diff_vector[i]+self.timestep*equation)
+				i+=1
+			return rule
+		
+		# somme is the sum to be minimized
+		diffsomme=0
+		# Sum of squared error is done over all the points designated by self.dependency when centered on pos
+		# Dp not forget to translate the arguments of all unknowns and constants
+		for point in self.dependency.points(pos):
+			# If point is outside the mesh, ignore it
+			if not self.mesh.is_in(point):
+				continue
+			# What system do we want to solve here
+			system=self.systemlist[self.mesh[tuple(point)]]
+			translatedsystem=(system.translation(vecteurs.diffv(point,pos),self.unknowns+self.constants))
+#			print (cputime())
+			somme_item=FiniteDifference(translatedsystem.squared_norm())
+			tmpgrad=self.Dirichlet[self.mesh[tuple(point)]].pairwise_product(grad(somme_item,self.diff_vector))
+#			print (cputime())
+			if tmpgrad!=self.zerovector:
+				if self.method==1:
+					diffsomme_item=(hessian(somme_item,self.diff_vector)).solve_right(tmpgrad)
+				elif self.method==2:
+					diffsomme_item=(self.descent*tmpgrad)
+				elif self.method==3:
+					diffsomme_item=((hessian(somme_item,self.diff_vector)-self.lambdanewton*identity_matrix(len(self.diff_vector))).solve_right(tmpgrad))
+				elif self.method==4:
+					diffsomme_item=(diaghessian(somme_item,self.diff_vector)*(tmpgrad))
+				else :
+					print("method==0: False Time method\nmethod==1: Newton method\nmethod=2: steepest gradient\nmethod=3: Modified Newton\nmethod=4: Simplified Newton")
+					return(-1);
+				diffsomme+=self.Dirichlet[self.mesh[tuple(point)]].pairwise_product(diffsomme_item)
+#			print (cputime())
+			
+		return(list(self.diff_vector-diffsomme))
+		
+=======
 
+>>>>>>> 9312177e1dd2a431f1c86f39a24281fb95f2cffb
 
 
 	def rules1(self,pos):
@@ -135,7 +212,10 @@ système donné (des variables qui ont des conditions de Dirichlet)
 		localsystem=(self.systemlist[self.mesh[tuple(pos)]])
 		# Whatever the method, if the localsystem is null, return the no move rule
 		if localsystem==[0]:
-
+<<<<<<< HEAD
+			#print("nomove rule")
+=======
+>>>>>>> 9312177e1dd2a431f1c86f39a24281fb95f2cffb
 			return list(self.diff_vector)
 #		if localsystem.squared_norm()==0:
 #			print("squarednorm simplification")
@@ -174,12 +254,20 @@ système donné (des variables qui ont des conditions de Dirichlet)
 			elif self.method==3:
 				diffsomme=((hessian(somme,self.diff_vector)-self.lambdanewton*identity_matrix(len(self.diff_vector))).solve_right(tmpgrad))
 			elif self.method==4:
-
+<<<<<<< HEAD
+=======
+				# voir s'il faut faire une inversion
+>>>>>>> 9312177e1dd2a431f1c86f39a24281fb95f2cffb
 				diffsomme=(diaghessian(somme,self.diff_vector)*(tmpgrad))
 			else :
 				print("method==0: False Time method\nmethod==1: Newton method\nmethod=2: steepest gradient\nmethod=3: Modified Newton\nmethod=4: Simplified Newton")
 				return(-1);
-
+<<<<<<< HEAD
+			#print("point :",point)
+			#print("self.mesh[tuple(point)]:",self.mesh[tuple(point)])
+			#print("self.Dirichlet[self.mesh[tuple(point)]]:",self.Dirichlet[self.mesh[tuple(point)]])
+=======
+>>>>>>> 9312177e1dd2a431f1c86f39a24281fb95f2cffb
 		return(list(self.diff_vector-self.Dirichlet[self.mesh[tuple(point)]].pairwise_product(diffsomme)))
 
 
@@ -195,7 +283,12 @@ système donné (des variables qui ont des conditions de Dirichlet)
 		print("Method 3: Modified Newton. the Hessian is replaced by H-lambda I. lambda is the attribute self.lambdanewton. For low lambdas, this is Newton Method while for large lambda, it ressembles the steepest gradient")
 		print("Method 4: Simplified Newton: the Hessian is replaced by its diagonal. Easier to compute.")
 		
+<<<<<<< HEAD
+=======
 
+
+
+>>>>>>> 9312177e1dd2a431f1c86f39a24281fb95f2cffb
 	def makefield(self):
 		"""Computes the field attribute.
 		It is mesh of the same dimensions as the mesh attribute.
@@ -220,7 +313,11 @@ système donné (des variables qui ont des conditions de Dirichlet)
 		self.dependency.save("dependency.escapade.dump");
 		self.field_done=1;
 
+<<<<<<< HEAD
+=======
 
+
+>>>>>>> 9312177e1dd2a431f1c86f39a24281fb95f2cffb
 	def loadfield(self):
 		"""Loads the result of makefield instead of computing them.
 		Needs the following files in the current directory :
@@ -284,7 +381,14 @@ système donné (des variables qui ont des conditions de Dirichlet)
 			currentpoint+=1
 			if currentpoint<=self.points_computed_so_far:
 				continue
-
+<<<<<<< HEAD
+			if self.rulechoice==0:
+				rule=self.rules(point)
+			else:
+				rule=self.rules1(point)
+=======
+			rule=self.rules1(point)
+>>>>>>> 9312177e1dd2a431f1c86f39a24281fb95f2cffb
 #			print("Done point",point,"#",currentpoint, "time :",walltime()-debut)
 			#Simplify if required
 			if self.simplifyQ==1:
@@ -292,7 +396,20 @@ système donné (des variables qui ont des conditions de Dirichlet)
 			#Pickle and compress the rule before listing for memory saving
 			rule=zlib.compress(dumps(rule))
 			#Skip, or NOT, the lengthy test to limit the number of rules
-
+<<<<<<< HEAD
+			#BUG : only one point is set to the new rule, leaving rule numbers in field which do not mean anything
+			#First work around : do not limit the number of rules
+			#inlist=False
+			#for i in range(self.rulenumber):
+			#	if rule==self.rulelist[i]:
+			#		inlist=True
+			#		self.ruledict[self.field[tuple(point)]]=i #<---BUG
+			#		break;
+			#if not inlist:
+			self.rulelist.append(rule)
+			self.ruledict[self.field[tuple(point)]]=self.rulenumber
+			self.rulenumber+=1
+=======
 			inlist=False
 			for i in range(self.rulenumber):
 				if rule==self.rulelist[i]:
@@ -303,6 +420,7 @@ système donné (des variables qui ont des conditions de Dirichlet)
 				self.rulelist.append(rule)
 				self.ruledict[self.field[tuple(point)]]=self.rulenumber
 				self.rulenumber+=1
+>>>>>>> 9312177e1dd2a431f1c86f39a24281fb95f2cffb
 			#end of list adding
 			self.points_computed_so_far+=1
 			f=open("rulelist.escapade.dump","w")
@@ -360,7 +478,26 @@ système donné (des variables qui ont des conditions de Dirichlet)
 		if self.field_done==0:
 			self.makefield()
 		print("Computing update rules")
-
+<<<<<<< HEAD
+		if (self.workers>1) and (self.method!=0):
+			self.makepatternsparallel()
+		else:
+			self.makepatterns()
+		# Now let us add the rules for the constants and the obervers
+		constantrules=list(apply(f,self.local_args) for f in self.constants)
+		newrulelist=[]		
+		while True:
+			try:
+				rule=loads(zlib.decompress(self.rulelist.pop(0)))
+				rule.extend(constantrules)
+				rule.extend(self.observers)
+				newrulelist.append(zlib.compress(dumps(rule)))
+			except IndexError:
+				self.rulelist=newrulelist
+				newrulelist=[]
+				break
+								
+=======
 		self.makepatterns()
 		# Now let us add the rules for the constants and the obervers
 		constantrules=list(apply(f,self.local_args) for f in self.constants)
@@ -373,6 +510,7 @@ système donné (des variables qui ont des conditions de Dirichlet)
 		
 		self.rulelist=newrulelist
 		newrulelist=[]						
+>>>>>>> 9312177e1dd2a431f1c86f39a24281fb95f2cffb
 		self.patterns_done=1
 
 
@@ -489,7 +627,130 @@ système donné (des variables qui ont des conditions de Dirichlet)
 		self.points_computed_so_far=0
 	
 
+<<<<<<< HEAD
+	def write_simpffiles(self):
+		"""Writes the files for the old version of simpf.
+		"""
+		if self.patterns_done==0:
+			#print("Computations not done: run self.makeCNN first")
+			self.makeCNN()
+		# Apply a series of rules for compliance with booz
+		Crulelist=[]
+		for rules in self.rulelist:
+			Crules=[]
+			for rule in rules:
+				Crules.append(FiniteDifference(loads(zlib.decompress(rule))).cform(self.max_args))
+			Crulelist.append(Crules)
+		#Patterns.simpf
+		stringpattern=Crulelist.__repr__()
+		#replace each unknown and constant by ?(i) where i is its position in the list
+		i=0
+		stringpattern=stringpattern.replace("simpfarobas","@")
+		stringpattern=stringpattern.replace("[","List(")
+		stringpattern=stringpattern.replace("]",")")
+		for f in (self.unknowns+self.constants):
+			stringpattern=stringpattern.replace(f.__repr__(),"?("+i.__repr__()+")")
+			i+=1
+		stringpattern=simpfpattern(stringpattern)
+		f=open("Patterns.simpf","w")
+		f.write(stringpattern)
+		f.close()
+		#Field.simpf
+		f=open("Field.simpf","w")
+		f.write("List(")
+		for i,val in numpy.ndenumerate(self.field):
+			f.write(str(val))
+			f.write(",")
+		f.write(")")
+		f.close()
+		#Layout.simpf
+		f=open("Layout.simpf","w")
+		f.write(str(len(self.unknowns+self.constants+self.observers))+"\n")
+		f.write(str(len(self.rulelist))+"\n")
+		l=len(self.mesh.shape)
+		if l==4:
+			simpfshape=[self.mesh.shape[0],self.mesh.shape[1],self.mesh.shape[2],self.mesh.shape[3]]
+		elif l==3:
+			simpfshape=[1,self.mesh.shape[0],self.mesh.shape[1],self.mesh.shape[2]]
+		elif l==2:
+			simpfshape=[1,1,self.mesh.shape[0],self.mesh.shape[1]]
+		elif l==1:
+			simpfshape=[1,1,1,self.mesh.shape[0]]
+		else:
+			print("For simpf, Mesh dimensions must be between 1 and 4")
+		for val in simpfshape:
+			f.write(str(val)+" ")
+		f.write("\n")
+		f.close()
+		
+		#A few parameters for Params.simpf
+		f=open("Params.simpf","w")
+		f.write(str(self.timestep))
+		#f.write("\t1\t#Time step used in the false time method\n")
+		f.write("\t1\n")
+		f.write(str(self.descent))
+		#f.write(str("\t1\t#Gradient coefficient for the steepest gradient descent\n"))
+		f.write(str("\t1\n"))
+		for params in self.params:
+			for param in params:
+				f.write(str(param)+"\t")
+			f.write("\n")
+		f.close()
+		
+		#A minimal Functions.simpf
+		f=open("Functions.simpf","w")
+		f.write("pow\tpow\n")
+		f.close()
+		
 
+	def simpfinit(self,initlist):
+		"""The method simpfinit takes as arguments a list of ndarrays corresponding to the initial values for unknowns and constants.
+		This is output to Init.simpf file.
+		"""
+		f=open("Init.simpf","w")
+		f.write('List(')
+		l=len(initlist)
+		for i,val in numpy.ndenumerate(initlist[0]):
+			for j in range(l):
+				f.write(str(initlist[j][i]))
+				f.write(",")
+			f.write("\n")
+		f.write(")")
+		f.close()
+
+
+	def read_simpf_result(self,snapshot):
+		"""The method read results reads the results from the snapshot indicated file.
+		And outputs it in a list of arrays.
+		"""
+		# The results are all output, including constants and obersvers
+		n_results=len(self.unknowns+self.constants+self.observers)
+		# start by a bunch of arrays filled with zeros
+		result_list=list(numpy.zeros(self.mesh.shape) for i in range(n_results))
+		# Open the file and read all the data in
+		# This gulps a lot of memory: twice as needed
+		# Can be corrected by either reading numbers one by one
+		# or line by line
+		reader=csv.reader(open(snapshot),delimiter=" ")
+		#skip 2 lines
+		# The first line could be used to check the file dimensionality agains self.shape
+		_=reader.next()
+		_=reader.next()
+		data=reader.next()
+		#remove last empty string
+		data.pop()
+		#convert to float
+		data=(map(float,data))
+		#fill the result_list
+		index=0 # index in the data list
+		for i,val in numpy.ndenumerate(result_list[0]):
+			for j in range(n_results):
+				result_list[j][i]=data[index]
+				index+=1
+		return (result_list)
+
+=======
+>>>>>>> 9312177e1dd2a431f1c86f39a24281fb95f2cffb
 
 #TODO :
 # Init

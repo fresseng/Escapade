@@ -1,7 +1,7 @@
 ###############################################################################
 #   ESCAPADE
 # Ergonomic Solver using Cellular Automata for PArtial Differential Equation
-#       Copyright (C) 2009 Nicolas Fressengeas <nicolas@fressengeas.net>
+#       Copyright (C) 2009-2015 Nicolas Fressengeas <nicolas@fressengeas.net>
 #  Distributed under the terms of the GNU General Public License (GPL),
 #  version 2 or any later version.  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
@@ -9,15 +9,14 @@
 
 #!/bin/bash
 
-VERSION = 1.04
-
 DIST_NAME = escabooz.sage
 
 PYTHON = sage
 SETUP = setup.py
 SETUPOPTIONS = build_ext --inplace
-DISTDIR = /home/fresseng/Documents/HTML/Escapade
-RELEASEDIR= releases
+
+#DISTDIR = /home/fresseng/Documents/HTML/Escapade
+RELEASEDIR= ../releases
 INSTALLDIR= ~/.escapade
 SAGEDIR=~/.sage
 
@@ -61,7 +60,8 @@ dist :
 	@cp $(FILES) $(DIST_NAME).$(VERSION)
 	@tar zcvf $(DIST_NAME).$(VERSION).tar.gz $(DIST_NAME).$(VERSION)
 	@rm -rf $(DIST_NAME).$(VERSION)
-	@cp $(DIST_NAME).$(VERSION).tar.gz $(DISTDIR)/
+
+	#@cp $(DIST_NAME).$(VERSION).tar.gz $(DISTDIR)/
 	@mv $(DIST_NAME).$(VERSION).tar.gz $(RELEASEDIR)/
 	
 
@@ -79,7 +79,8 @@ install :
 	@cp *.sage $(INSTALLDIR)/
 	@cp *.spyx $(INSTALLDIR)/
 	@cp *.so $(INSTALLDIR)/
-	@cat EscapadeSageInit.sage >> $(SAGEDIR)/init.sage
+
+	@cat EscapadeSageInit.sage > $(SAGEDIR)/init.sage
 
 uninstall :
 	@if [ ! -d $(INSTALLDIR) ]; then \
